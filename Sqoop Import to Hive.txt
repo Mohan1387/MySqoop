@@ -1,0 +1,126 @@
+Hpsm  refresh-> 1:00,1:15,1:30,1:45,2:00
+Sqoop -> 1:10,1:25,1:40,1:55,2:10
+
+10,25,40,55
+
+
+sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
+--username analyticsusr \
+--password smc#12345 \
+--driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
+--table dbo.HPSMTickets_AnalyticsData \
+--hive-drop-import-delims \
+--hive-import \
+--hive-table masterlogdb.HPSMTickets_AnalyticsData \
+-m 1
+
+
+sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
+--username analyticsusr \
+--password smc#12345 \
+--driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
+--query "select * from dbo.HPSMTickets_AnalyticsData where \$CONDITIONS" \
+--hive-drop-import-delims \
+--hive-import \
+--hive-table masterlogdb.HPSMTickets_AnalyticsData \
+--target-dir hpsmtickets_analyticsdata \
+-m 1
+
+SET hive.exec.compress.output=true;
+SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
+SET mapred.output.compression.type=BLOCK;
+
+CREATE EXTERNAL TABLE HPSMTickets_AnalyticsData_Train
+(Sr_No STRING,
+HPSM_TicketNo STRING,
+DU_NFX_ORG_MSG STRING,
+Opentime STRING,
+DU_NFX_SOURCE_IP STRING,
+DU_NFX_DEST_IP STRING,
+sla_breach STRING,
+priority_code STRING,
+DU_NFX_DEVICE_EVENTDESC STRING,
+DU_NFX_DEVICE_EVENTID STRING,
+C_CATEGORY STRING,
+C_SUBCATEGORY STRING,
+DU_SLA_END STRING,
+PROBLEM_STATUS STRING,
+ASSIGNEE_NAME STRING,
+RESOLVED_TIME STRING,
+T_RESOLUTION STRING,
+log_timestamp STRING)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+   "separatorChar" = ",",
+   "quoteChar"     = "\""
+)
+LOCATION 'hdfs://master:54310/user/hdfs/TruePositive/HPSMTrain/*';
+
+"select 
+Sr_No,
+HPSM_TicketNo,
+DU_NFX_ORG_MSG,
+Opentime,
+DU_NFX_SOURCE_IP,
+DU_NFX_DEST_IP,
+sla_breach,
+priority_code,
+DU_NFX_DEVICE_EVENTDESC,
+DU_NFX_DEVICE_EVENTID,
+C_CATEGORY,
+C_SUBCATEGORY,
+DU_SLA_END,
+PROBLEM_STATUS,
+ASSIGNEE_NAME,
+RESOLVED_TIME,
+'"'+T_RESOLUTION+'"',
+log_timestamp
+from dbo.HPSMTickets_AnalyticsData where \$CONDITIONS"
+
+
+sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
+--username analyticsusr \
+--password smc#12345 \
+--driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
+--query "select Sr_No,HPSM_TicketNo,DU_NFX_ORG_MSG,Opentime,DU_NFX_SOURCE_IP,DU_NFX_DEST_IP,sla_breach,priority_code,DU_NFX_DEVICE_EVENTDESC,DU_NFX_DEVICE_EVENTID,C_CATEGORY,C_SUBCATEGORY,DU_SLA_END,PROBLEM_STATUS,ASSIGNEE_NAME,RESOLVED_TIME,T_RESOLUTION,log_timestamp from dbo.HPSMTickets_AnalyticsData where Sr_No >  \$CONDITIONS" \
+--hive-import \
+--hive-table test.HPSMTickets_AnalyticsData \
+--target-dir hpsmtickets_analyticsdata \
+-m 1
+
+
+select sr_no,t_resolution,log_timestamp from HPSMTickets_AnalyticsData order by log_timestamp;
+
+
+
+sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
+--username analyticsusr \
+--password smc#12345 \
+--driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
+--query "select * from dbo.HPSMTickets_AnalyticsData where \$CONDITIONS" \
+--target-dir  "/user/hdfs/test/HPSMTickets_AnalyticsData" \
+-m 1
+
+select a.* from
+(select row_number() over (partition by hpsm_ticketno order by hpsm_ticketno) as rownum,* from hpsmtickets_analyticsdata) as a
+where a.rownum = 1;
+
+
+
+--------incremental update based on the hive column last value---------------------------------.
+
+
+lastupdatedvalue=`hive -e 'select max(sr_no) from masterlogdb.hpsmtickets_analyticsdata;'`
+
+#echo $lastupdatedvalue
+
+sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
+--username analyticsusr \
+--password smc#12345 \
+--driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
+--query "select * from dbo.HPSMTickets_AnalyticsData where sr_no > $lastupdatedvalue and \$CONDITIONS" \
+--hive-drop-import-delims \
+--hive-import \
+--hive-table masterlogdb.HPSMTickets_AnalyticsData \
+--target-dir hpsmtickets_analyticsdata \
+-m 1

@@ -1,0 +1,80 @@
+Step: 1 Download Sqoop package
+
+cd setups
+
+wget http://www-us.apache.org/dist/sqoop/1.4.6/sqoop-1.4.6.bin__hadoop-2.0.4-alpha.tar.gz
+
+
+step: 2 unzip the package
+
+tar -xzf sqoop-1.4.6.bin__hadoop-2.0.4-alpha.tar.gz
+
+ls 
+
+sqoop-1.4.6.bin__hadoop-2.0.4-alpha
+
+sudo mv sqoop-1.4.6.bin__hadoop-2.0.4-alpha /usr/lib/sqoop
+
+sudo chown -R hduser:hadoop /usr/lib/sqoop
+
+step: 3 set Environment variables
+
+vi ~/.bashrc
+
+add the below two variables
+
+export SQOOP_HOME=/usr/lib/sqoop
+export PATH=$PATH:$SQOOP_HOME/bin
+
+also check if the below mentioned variables is present in the bashrc else add them
+
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+
+. ~/.bashrc
+
+step: 4 check the installation
+
+sqoop-version
+
+it should show the version of the sqoop installation.
+
+step: 5 configuring JDBC Connector for Mysql and SQL Server databases in sqoop library
+
+
+a) for Mysql
+
+yum install libmysql-java
+
+cp /usr/share/java/mysql-connector-java.jar /usr/lib/sqoop/lib/mysql-connector-java.jar
+
+b) for SQL Server
+
+1.download JDBC tar file
+
+https://docs.microsoft.com/en-us/sql/connect/jdbc/using-the-jdbc-driver
+
+2.then unzip the downloaded file
+
+tar -xzf sqljdbc_6.0.8112.100_enu.tar.gz
+
+3.copy the jar from the unziped dir to /usr/lib/sqoop/lib
+
+cp /home/hduser/setups/sqljdbc_6.0/enu/jre8/sqljdbc42.jar /usr/lib/sqoop/lib/sqljdbc42.jar
+
+--------------------------------------------------------------------------------------
+
+sample for import from SQL Server to Hive
+
+sqoop import --connect "jdbc:sqlserver://IPADDRESS;database=DBName" \
+--username DBUSERNAME \
+--password Password \
+--driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
+--table dbo.Tablename \
+--hive-import \
+--hive-table hivedatabasename.tablename \
+-m 1
+
+where 'm' is the number of mapper set if the tables does not have primary key
