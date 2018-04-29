@@ -1,0 +1,41 @@
+
+Id : id of the attribute
+V : Value (url ,hostname etc.)
+Score: Threat score
+Type :weather its url ,domain ,hostname 
+Feed :This contains the feed source
+
+
+I have created a separate view for analytics team  ,and have created a user account to access the same.
+
+The server ip address on which Mysql is running is  172.16.254.58.
+
+You can select the records by the following query :
+
+Select * from Analytics_Top_Domains;
+
+SET hive.exec.compress.output=true;
+SET mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
+SET mapred.output.compression.type=BLOCK;
+CREATE TABLE masterlogdb.Analytics_Top_Mal_Domains(
+Id String,
+ref_date String,
+Domainvalue String,
+score String,
+type String,
+feed String);
+
+sqoop import --driver com.mysql.jdbc.Driver --connect "jdbc:mysql://172.16.254.58:3306/misp" \
+--username analyticsuser_ \
+--password 'Ct!analytics!123' \
+--query "select id, CURDATE() as ref_date, v, score, type, CTI_Feed from Analytics_Top_Domains where \$CONDITIONS" \
+--delete-target-dir \
+--split-by id \
+--num-mappers 1 \
+--hive-drop-import-delims \
+--hive-import \
+--hive-table masterlogdb.analytics_top_mal_domains \
+--target-dir analytics_top_mal_domains
+
+mysql -u analyticsuser_ -h 172.16.254.58 -p
+
