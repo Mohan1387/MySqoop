@@ -4,9 +4,9 @@ Sqoop -> 1:10,1:25,1:40,1:55,2:10
 10,25,40,55
 
 
-sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
---username analyticsusr \
---password smc#12345 \
+sqoop import --connect "jdbc:sqlserver://1.16.2.10;database=SecurityDashboard" \
+--username ansusr \
+--password 12345 \
 --driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
 --table dbo.HPSMTickets_AnalyticsData \
 --hive-drop-import-delims \
@@ -15,9 +15,9 @@ sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboa
 -m 1
 
 
-sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
---username analyticsusr \
---password smc#12345 \
+sqoop import --connect "jdbc:sqlserver://1.16.24.30;database=SecurityDashboard" \
+--username ansusr \
+--password 12345 \
 --driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
 --query "select * from dbo.HPSMTickets_AnalyticsData where \$CONDITIONS" \
 --hive-drop-import-delims \
@@ -78,9 +78,9 @@ log_timestamp
 from dbo.HPSMTickets_AnalyticsData where \$CONDITIONS"
 
 
-sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
---username analyticsusr \
---password smc#12345 \
+sqoop import --connect "jdbc:sqlserver://1.16.2.10;database=SecurityDashboard" \
+--username ansusr \
+--password 12345 \
 --driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
 --query "select Sr_No,HPSM_TicketNo,DU_NFX_ORG_MSG,Opentime,DU_NFX_SOURCE_IP,DU_NFX_DEST_IP,sla_breach,priority_code,DU_NFX_DEVICE_EVENTDESC,DU_NFX_DEVICE_EVENTID,C_CATEGORY,C_SUBCATEGORY,DU_SLA_END,PROBLEM_STATUS,ASSIGNEE_NAME,RESOLVED_TIME,T_RESOLUTION,log_timestamp from dbo.HPSMTickets_AnalyticsData where Sr_No >  \$CONDITIONS" \
 --hive-import \
@@ -93,9 +93,9 @@ select sr_no,t_resolution,log_timestamp from HPSMTickets_AnalyticsData order by 
 
 
 
-sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
+sqoop import --connect "jdbc:sqlserver://1.16.2.10;database=SecurityDashboard" \
 --username analyticsusr \
---password smc#12345 \
+--password 12345 \
 --driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
 --query "select * from dbo.HPSMTickets_AnalyticsData where \$CONDITIONS" \
 --target-dir  "/user/hdfs/test/HPSMTickets_AnalyticsData" \
@@ -114,9 +114,9 @@ lastupdatedvalue=`hive -e 'select max(sr_no) from masterlogdb.hpsmtickets_analyt
 
 #echo $lastupdatedvalue
 
-sqoop import --connect "jdbc:sqlserver://172.16.254.130;database=SecurityDashboard" \
---username analyticsusr \
---password smc#12345 \
+sqoop import --connect "jdbc:sqlserver://1.1.54.10;database=SecurityDashboard" \
+--username anusr \
+--password 12345 \
 --driver com.microsoft.sqlserver.jdbc.SQLServerDriver \
 --query "select * from dbo.HPSMTickets_AnalyticsData where sr_no > $lastupdatedvalue and \$CONDITIONS" \
 --hive-drop-import-delims \
